@@ -39,6 +39,7 @@
   "author": "Google LLC",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "colorjs.io": "^0.4.5",
     "lit": "^3.0.0"
   },
   "devDependencies": {
