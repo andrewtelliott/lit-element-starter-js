@@ -5,156 +5,205 @@
  */
 
 import {LitElement, html, css} from 'lit';
-import Color from "colorjs.io";
+import Color from 'colorjs.io';
 
 /**
  * An example element.
  *
- * @fires count-changed - Indicates when the count changes
+ * @fires color-changed - Indicates when the color changes
  * @slot - This element has a slot
- * @csspart button - The button
  */
 export class FwTheme extends LitElement {
   static get styles() {
     return css`
-      :host {
-        display: block;
-        border: solid 1px gray;
-        padding: 16px;
-        max-width: 800px;
-      }
-      .swatch-card{
-        display:grid;
-        grid-template-columns:repeat(9,1fr);
-        grid-template-rows:repeat(auto, 4em);
-      }
-      .swatch-card h2{
-        grid-row:1;
-        grid-column:1 / span 9;
-      }
-      .swatch{
-        grid-row:2;
-        width:100%;
-        height:3em;
-      }
     `;
   }
 
-  static get properties() {
-    return {
-      /**
-       * The name to say "Hello" to.
-       * @type {string}
-       */
-      name: {type: String},
-
-      /**
-       * The number of times the button has been clicked.
-       * @type {number}
-       */
-      count: {type: Number},
-    };
-  }
+  static properties = {color: {type: String}, fwThemeClass: {type: String}};
 
   constructor() {
+    
     super();
-    this.name = 'World';
-    this.count = 0;
-    this.colors={};
-    this.brand="hsl(201 100% 31%)";
+    this.lightSchemeBase=["#fcfcfc","#f9f9f9","#f0f0f0","#e8e8e8","#e0e0e0","#d9d9d9","#cecece","#bbbbbb","#8d8d8d","#838383","#646464","#202020" ];
+    this.color = this.getAttribute('fw-theme-color');
+    this.themeClass = this.getAttribute('fw-theme-class');
+    this.classList.add("c-"+this.themeClass);
+    var colorSpace = 'hsl';
+    var minContrast = 70;
+    var contrastAlgo = "APCA";
+    this.colors = {};
+    // this.complement = new Color(this.color)
+    //   .to(colorSpace)
+    //   .set('h', (new Color(this.color).h + 180) % 360)
+    //   .to(colorSpace);
 
-    this.complement = 
-    new Color(this.brand).to('hsl').set('h', (new Color(this.brand).h+180) % 360 ).to('hsl');
-
-    
-    
     //Style Layer
 
-    this.makeColor = function(color){
-      var scaling = [
-        {l:99.5,s:100},
-        {l:98,s:100},
-        {l:97,s:95},
-        {l:95,s:90},
-        {l:80,s:75},
-        {l:50,s:50},
-        {l:30,s:65},
-        {l:20,s:75},
-        {l:15,s:85},
-        {l:5,s:100}
-      ];
-      var colors=[];
-      scaling.forEach(function(scale,count){
-        colors['l-'+count]=new Color(color).to('hsl').set('l',scale.l).set('s',scale.s)
+    this.makeColor = function (color) {
+      var colors = [];
+      var scalarFunction = function(seed,type){
+        // 0,1,2,3 should return 90-100
+        // 4,5,6,7 should return 40-60
+        // 8,9,10,11 should return 90-100
+
+        var hslScale = [
+          {l: 99.5, s: 100},
+          {l: 98, s: 100},
+          {l: 97, s: 95},
+          {l: 95, s: 90},
+          {l: 93, s: 85},
+          {l: 90, s: 80},
+          {l: 80, s: 75},
+          {l: 50, s: 50},
+          {l: 34, s: 65},
+          {l: 30, s: 75},
+          {l: 25, s: 85},
+          {l: 15, s: 100},
+        ];
+        return (hslScale[seed][type]);
+      }
+      for ( let count in this.lightSchemeBase ){
+        colors['l-' + count] = new Color(this.lightSchemeBase[count]).mix(this.color,(scalarFunction(count,"l")/100) )
+          .to(colorSpace);
+          colors['l-' + count].s=scalarFunction(count,"s");
+          colors['l-' + count].l=scalarFunction(count,"l");
+      }
+
+      // check contrast - ensure over 70
+      Object.keys(colors).forEach(function (color, index) {
+        // while( Math.abs(colors[color].contrast(colors['l-0'],"APCA")) < 70 &&Math.abs(colors[color].contrast(colors['l-11'],"APCA")) < 70 ){
+
+        //   console.log("contrast: " + Math.abs(colors[color].contrast(colors['l-0'], "APCA")) + " / " + Math.abs(colors[color].contrast(colors['l-11'],"APCA")));
+
+        // }
+
       })
       return colors;
     };
 
-    this.colors.brand = this.makeColor(this.brand);
-    this.colors.primary = this.makeColor('blue');
-    this.colors.complement = this.makeColor(this.complement);
+    this.colors[this.themeClass] = this.makeColor(this.color);
+    // this.colors.primary = this.makeColor('blue');
+    // this.colors.complement = this.makeColor(this.complement);
 
-    this.outputSpectrum=function(spectrum){
-      console.log(spectrum);
-      let outDiv=document.createElement('div');
-      var output=``;
-      Object.keys(spectrum).forEach(function(color){
-        output += `<div class="swatch-card"><h2>${color}</h2>
-        `;
-       Object.keys(spectrum[color]).forEach(function(tone){
-        output+= `<div class="swatch c-${color}-${tone}" style="background-color:var(--c-${color}-${tone})"></div>`
-       })
-       output += `</div>`;
-      })
-      outDiv.innerHTML= output;
+    this.outputSpectrum = function (spectrum) {
+      let outDiv = document.createElement('div');
+      var output = ``;
+      Object.keys(spectrum).forEach(function (color) {
+        Object.keys(spectrum[color]).forEach(function (tone) {
+
+          var borderStep=parseInt(tone.split('-')[1]),
+            textStep=11;
+            borderStep = (borderStep > 7) ? (borderStep - 4) : (borderStep + 4);
+          var colorText = new Color(spectrum[color][`l-${textStep}`]);
+          var contrast = (new Color(spectrum[color][tone]).contrast(colorText, "APCA")).toFixed(2);
+          if(Math.abs(contrast) < Math.abs(new Color(spectrum[color][tone]).contrast(spectrum[color]['l-0'], "APCA")) ){
+            textStep=0;
+            var colorText = new Color(spectrum[color][`l-${textStep}`]);
+            var contrast = (new Color(spectrum[color][tone]).contrast(colorText, "APCA")).toFixed(2);
+          }
+
+          let textColor=`var(--c-${color}-l-${textStep})`;
+          output += `<div class="swatch c-${color}-${tone}" style="--swatch-bg:var(--c-${color}-${tone}); --swatch-text:${textColor}; --swatch-border:var(--c-${color}-l-${borderStep});">${contrast}</div>`;
+        });
+      });
+      outDiv.innerHTML = output;
       return outDiv;
-    }
+    };
 
-    this.toCssVar=function(colorName, scale){
-      var styleOut=document.createElement('style');
-      styleOut.innerHTML=`:host{`;
-      Object.keys(scale).forEach(function(step){
-          styleOut.innerHTML+=`--c-${colorName}-${step}:${scale[step]};`;
-      })
-      styleOut.innerHTML+=`}`;
-      return styleOut
-    }
+    this.toCssVar = function (colorName, scale) {
+      var styleOut = document.createElement('style');
+      styleOut.innerHTML = `:root{`;
+      Object.keys(scale).forEach(function (step) {
+//        styleOut.innerHTML += `--c-${colorName}-${step}:${scale[step].toGamut({method:'css',space:"srgb"})};`;
+        styleOut.innerHTML += `--c-${colorName}-${step}:${scale[step].to("hsl")};`;
+      });
+      styleOut.innerHTML += `}`;
+      styleOut.innerHTML += `\r.c-${colorName}{`;
+      Object.keys(scale).forEach(function (step) {
+        styleOut.innerHTML += `--c-${step}:${scale[step]};`;
+      });
+      styleOut.innerHTML += `
+      --c-bg:var(--c-l-0);
+      --c-bg-subtle:var(--c-l-1);
+      --c-bg-ui:var(--c-l-2);
+      --c-bg-ui-hover:var(--c-l-3);
+      --c-bg-ui-active:var(--c-l-4);
+      --c-border:var(--c-l-5);
+      --c-border-ui:var(--c-l-6);
+      --c-border-ui-hover:var(--c-l-7);
+      --c-solidbg:var(--c-l-8);
+      --c-solidbg-hover:var(--c-l-9);
+      --c-text-lc:var(--c-l-10);
+      --c-text-hc:var(--c-l-11);    
+    }`;
 
+
+
+      return styleOut;
+    };
+
+    this.printTheme = function (colors) {
+      var toCssVar = this.toCssVar;
+      var fwTheme = document.createElement('div');
+      Object.keys(colors).forEach(function (color, var2) {
+        fwTheme.appendChild(toCssVar(color, colors[color]));
+      });
+      return fwTheme;
+    };
   }
+
+  _onChange(e) {
+    // change to recalc styles.
+
+    // TODO ?
+    // add serve from local storage.
+    // refactor color getter / color setter so we don't need color.js until it's needed.
+    // - Color picker/scheme maker.
+    // - Color chip, color stops, color gradient
+    // - component examples of each color
+    //   - button
+    //   - text, knockout header
+    //   - h1, h2, h3, p, input, etc.
+    // - Add default scheme using css variables.
+    // - Diagram of how the color system works.
+
+    // FW-THEME-EDIT: Call recalculation path (load new libraries)
+    // display calculated styles.
+    // FW-THEME-STYLES
+    // <style id='theme-themeType-color' />
+    let fwThemeColor=e.target.value;
+    this.colors[this.themeClass] = this.makeColor(fwThemeColor);
+
+    this.setAttribute('fw-theme-color',fwThemeColor);
+ 
+    e.target.parentElement.lastChild.innerHTML ='';
+    e.target.parentElement.lastChild.appendChild( this.printTheme(this.colors) );
+    e.target.nextElementSibling.innerHTML ='';
+    e.target.nextElementSibling.appendChild( this.outputSpectrum(this.colors) );
+    this.dispatchEvent(new CustomEvent('color-changed'));
+  }
+  
 
   render() {
     return html`
-    <div>
-      <input @change=${this._onChange} type="color" />
-      <slot></slot>
-    </div>
-    <div class="theme-color-spectrum">${ this.outputSpectrum(this.colors) }</div>
-    <div class="theme-styles">
-      ${ this.toCssVar('primary',this.colors.primary) } 
-      ${ this.toCssVar('complement',this.colors.complement) } 
-      ${ this.toCssVar('brand',this.colors.brand) } 
-    </div>`;
+      <div class="theme-color-spectrum c-${this.themeClass}">
+        <div class="swatch-card">
+          <input
+            @change=${this._onChange}
+            value=${this.color}
+            type="color"
+          />
+          <h2>${this.themeClass}</h2>
+          ${this.outputSpectrum(this.colors)}
+        </div>
+      </div>
+      <div class="theme-styles">${this.printTheme(this.colors)}</div>`;
+  }
+  createRenderRoot() {
+    return this;
   }
 
-  _onChange() {
-    // change to recalc styles.
-      // TODO ? does style exist in localStorage
-      // FW-THEME-EDIT: Call recalculation path (load new libraries)
-    // display calculated styles.
-    // FW-THEME-STYLES
-      // <style id='theme-themeType-color' />
-    this.count++;
-    this.dispatchEvent(new CustomEvent('count-changed'));
-  }
 
-  /**
-   * Formats a greeting
-   * @param name {string} The name to say "Hello" to
-   * @returns {string} A greeting directed at `name`
-   */
-  sayHello(name) {
-    return `Hello, ${name}`;
-  }
 }
 
 window.customElements.define('fw-theme', FwTheme);

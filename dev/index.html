@@ -8,15 +8,134 @@
     <script src="../node_modules/lit/polyfill-support.js"></script>
     <script type="module" src="../fw-theme.js"></script>
     <style>
-      p {
-        border: solid 1px blue;
+      :root {
+        --c-l-0: var(--c-default-l-0, white);
+        --c-l-1: var(--c-default-l-1, white);
+        --c-l-2: var(--c-default-l-2, white);
+        --c-l-3: var(--c-default-l-3, white);
+        --c-l-4: var(--c-default-l-4, white);
+        --c-l-5: var(--c-default-l-5, white);
+        --c-l-6: var(--c-default-l-6, white);
+        --c-l-7: var(--c-default-l-7, white);
+        --c-l-8: var(--c-default-l-8, white);
+        --c-l-9: var(--c-default-l-9, white);
+        --c-l-10: var(--c-default-l-10, white);
+        --c-l-11: var(--c-default-l-11, white);
+
+        --c-bg:var(--c-l-0);
+        --c-bg-subtle:var(--c-l-1);
+        --c-bg-ui:var(--c-l-2);
+        --c-bg-ui-hover:var(--c-l-3);
+        --c-bg-ui-active:var(--c-l-4);
+        --c-border:var(--c-l-5);
+        --c-border-ui:var(--c-l-6);
+        --c-border-ui-hover:var(--c-l-7);
+        --c-solidbg:var(--c-l-8);
+        --c-solidbg-hover:var(--c-l-9);
+        --c-text-lc:var(--c-l-10);
+        --c-text-hc:var(--c-l-11);    
+      }
+      body{
+        background-color:var(--bg);
+        color:var(--c-text-hc);
+      }
+      button{
+        border:1px solid rgba(50,50,50,.1);
+        padding: 4px 8px;
+        border-radius:4px;
+        font-weight:600;
+      }
+      textarea,select,input,a,button{
+        --this-color:var(--c-text-lc);
+        --this-bg-color:var(--c-bg-ui);
+        --this-border-color:var(--c-border-ui);
+        background-color:var(--this-bg-color);
+        border-color:var(--this-border-color);
+        color:var(--this-color);
+        cursor: pointer;
+       }
+      :is(textarea,select,input,a,button):hover{
+        --this-bg-color:var(--c-bg-ui-hover);
+        --this-border-color:var(--c-border-ui-hover);
+        --this-color:var(--c-text-hc);
+      }
+      :is(textarea,select,input,a,button):is(:focus,:focus-visible,:active){
+        --this-bg-color:var(--c-bg-ui-active);
+      }
+      .swatch-card {
+        display: grid;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        grid-template-columns: repeat(12, 1fr);
+        background: linear-gradient(
+          to right,
+          var(--c-l-0, white),
+          var(--c-l-1, white),
+          var(--c-l-2, white),
+          var(--c-l-3, white),
+          var(--c-l-4, white),
+          var(--c-l-5, white),
+          var(--c-l-6, white),
+          var(--c-l-7, white),
+          var(--c-l-8, white),
+          var(--c-l-9, white),
+          var(--c-l-10,white),
+          var(--c-l-11, white)
+        );
+      }
+      .swatch-card h2 {
         padding: 8px;
+        grid-row: 1;
+        grid-column: 2 / -1;
+      }
+      .swatch-card > div {
+        display: grid;
+        width: 100%;
+        grid-column: 1 / span 12;
+      }
+      .swatch {
+        grid-row: 2;
+        width: 100%;
+        height: 3em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        background-color:var(--swatch-bg);
+        color:var(--swatch-text);
+        border: 2px solid var(--swatch-border);
+      }
+
+      fw-theme {
+        display: block;
+        padding: 0;
       }
     </style>
   </head>
   <body>
-    <fw-theme color="#00669E" class="brand">
-      <p>This is child here</p>
-    </my-element>
+    <fw-theme fw-theme-color="#cc00cc" fw-theme-class="default"></fw-theme>
+    <fw-theme fw-theme-color="#3A86FF" fw-theme-class="brand"></fw-theme>
+    <fw-theme fw-theme-color="#FF006E" fw-theme-class="error"></fw-theme>
+    <fw-theme fw-theme-color="#FFBE0B" fw-theme-class="success"></fw-theme>
+    <fw-theme fw-theme-color="#8338EC" fw-theme-class="info"></fw-theme>
+    <fw-theme fw-theme-color="#FB5607" fw-theme-class="alert"></fw-theme>
+
+    <fw-card>
+      <button>TEST!</button>
+    </fw-card>
+    <fw-card class="c-default">
+      <button>TEST!</button>
+    </fw-card>
+    <fw-card class="c-error">
+      <button>TEST!</button>
+    </fw-card>
+    <fw-card class="c-info">
+      <button>TEST!</button>
+    </fw-card>
+    <fw-card class="c-brand">
+      <button>TEST!</button>
+    </fw-card>
+
   </body>
 </html>
